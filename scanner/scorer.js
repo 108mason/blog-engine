@@ -49,7 +49,7 @@ export function scoreArticle(article, keywords) {
 
 export function filterArticles(articles) {
   const keywords = loadKeywords();
-  const MIN_SCORE = 20;
+  const MIN_SCORE = 5;
 
   return articles
     .map(article => ({

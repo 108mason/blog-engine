@@ -3,14 +3,21 @@
     "manifestation", "law of attraction", "abundance mindset",
     "holistic health", "natural supplements", "adaptogens",
     "alternative lifestyle", "spiritual wellness", "gut health",
-    "detox", "herbal remedies", "conscious living"
+    "detox", "herbal remedies", "conscious living",
+    "natural health", "wellness", "healing", "herb", "supplement",
+    "spiritual", "anxiety", "stress", "sleep", "immune", "inflammation",
+    "gut", "microbiome", "hormone", "energy", "fatigue", "natural remedy",
+    "self care", "mental health", "gratitude", "affirmation", "intention",
+    "magnesium", "ashwagandha", "turmeric", "probiotics", "vitamin"
   ],
   "medium_priority": [
     "meditation", "journaling", "vision board", "energy healing",
     "plant medicine", "sleep optimization", "mindfulness",
-    "minimalism", "chakra", "breathwork"
+    "minimalism", "chakra", "breathwork", "yoga", "nutrition",
+    "diet", "fitness", "exercise", "lifestyle", "ritual", "practice",
+    "morning routine", "healthy", "foods", "whole food", "organic"
   ],
   "exclude": [
-    "pharmaceutical", "surgery", "prescription"
+    "pharmaceutical", "surgery", "prescription", "chemotherapy", "opioid"
   ]
 }

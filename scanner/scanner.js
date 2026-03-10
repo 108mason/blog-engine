@@ -5,7 +5,10 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const parser = new Parser();
+// User-Agent required by Reddit and some other feeds
+const parser = new Parser({
+  headers: { 'User-Agent': 'Mozilla/5.0 (compatible; blog-engine/1.0; +https://github.com/108mason/blog-engine)' }
+});
 
 function loadSources() {
   const raw = readFileSync(join(__dirname, '../data/sources.json'), 'utf8');

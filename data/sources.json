@@ -2,8 +2,11 @@
   "rss_feeds": [
     "https://www.mindbodygreen.com/rss.xml",
     "https://draxe.com/feed/",
-    "https://www.gaia.com/feed",
-    "https://www.healthline.com/rss/news",
+    "https://www.wellandgood.com/feed/",
+    "https://www.healthline.com/rss/wellness",
+    "https://www.verywellmind.com/rss/news",
+    "https://www.medicalnewstoday.com/rss/wellness",
+    "https://feeds.feedburner.com/tinybuddha",
     "https://www.reddit.com/r/lawofattraction/.rss",
     "https://www.reddit.com/r/herbalism/.rss",
     "https://www.reddit.com/r/Supplements/.rss",
