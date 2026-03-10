@@ -3,64 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Rooted & Rising</title>
+  <title>Content Management — Rooted & Rising</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-<!-- ── Login Screen (shown if not authenticated) ── -->
-<div id="loginScreen">
-  <header>
-    <div class="header-inner">
-      <a href="index.html" class="logo">Rooted <span>&</span> Rising</a>
-    </div>
-  </header>
-  <div class="dash-login">
-    <h2>Dashboard Login</h2>
-    <p style="color:var(--muted);margin-bottom:1.5rem">Enter your dashboard password to continue.</p>
-    <input type="password" id="pwInput" placeholder="Password" />
-    <button class="btn btn-green" style="width:100%" id="loginBtn">Login</button>
-    <p id="loginError" style="color:#DC2626;margin-top:.75rem;display:none">Incorrect password. Try again.</p>
+<header>
+  <div class="header-inner">
+    <a href="index.html" class="logo">Rooted <span>&</span> Rising</a>
+    <nav>
+      <a href="index.html">← Back to Blog</a>
+    </nav>
   </div>
-</div>
+</header>
 
-<!-- ── Dashboard (hidden until authenticated) ── -->
-<div id="dashboardApp" style="display:none">
+<section style="max-width:760px;margin:3rem auto;padding:0 1.25rem">
+  <h1 style="margin-bottom:.5rem">Content Management</h1>
+  <p style="color:var(--muted);margin-bottom:2.5rem">Posts are managed directly in GitHub — no dashboard needed.</p>
 
-  <div class="dash-header">
-    <div class="container" style="display:flex;justify-content:space-between;align-items:center">
-      <h1>✦ Content Dashboard</h1>
-      <div style="display:flex;gap:1rem;align-items:center">
-        <span id="statsBar" style="font-size:.85rem;opacity:.8"></span>
-        <button class="btn btn-outline" id="logoutBtn" style="padding:.35rem .85rem;font-size:.85rem">Logout</button>
+  <!-- Step 1 -->
+  <div class="draft-item" style="margin-bottom:1.25rem">
+    <div class="draft-summary" style="cursor:default">
+      <div class="draft-info">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.4rem">
+          <span style="background:var(--green);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">1</span>
+          <h3 style="margin:0">Trigger a scan</h3>
+        </div>
+        <p style="color:var(--muted);margin:0 0 0 2.6rem">Go to <strong>Actions → Scan & Generate Posts → Run workflow</strong> in your GitHub repo. New draft posts will be written to <code>blog/data/posts.json</code> automatically.</p>
       </div>
     </div>
   </div>
 
-  <div class="container" style="padding-top:2rem;padding-bottom:4rem">
-    <!-- Tabs -->
-    <div class="dash-tabs">
-      <button class="tab-btn active" data-tab="drafts">Drafts <span id="draftCount" class="score-pill" style="margin-left:.4rem">0</span></button>
-      <button class="tab-btn" data-tab="published">Published <span id="pubCount" class="score-pill" style="margin-left:.4rem">0</span></button>
-    </div>
-
-    <!-- Drafts Tab -->
-    <div id="tabDrafts">
-      <div id="draftsList">
-        <p style="color:var(--muted)">Loading drafts…</p>
-      </div>
-    </div>
-
-    <!-- Published Tab -->
-    <div id="tabPublished" style="display:none">
-      <div id="publishedList">
-        <p style="color:var(--muted)">Loading published posts…</p>
+  <!-- Step 2 -->
+  <div class="draft-item" style="margin-bottom:1.25rem">
+    <div class="draft-summary" style="cursor:default">
+      <div class="draft-info">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.4rem">
+          <span style="background:var(--green);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">2</span>
+          <h3 style="margin:0">Review & edit a draft</h3>
+        </div>
+        <p style="color:var(--muted);margin:0 0 0 2.6rem">Open <code>blog/data/posts.json</code> in the GitHub web editor. Find the post you want (status: "draft"), edit the <code>title</code>, <code>body</code>, or any other field directly in the JSON.</p>
       </div>
     </div>
   </div>
 
-</div>
+  <!-- Step 3 -->
+  <div class="draft-item" style="margin-bottom:1.25rem">
+    <div class="draft-summary" style="cursor:default">
+      <div class="draft-info">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.4rem">
+          <span style="background:var(--gold);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">3</span>
+          <h3 style="margin:0">Publish a post</h3>
+        </div>
+        <p style="color:var(--muted);margin:0 0 0 2.6rem">Change <code>"status": "draft"</code> → <code>"status": "published"</code> and set <code>"publishedAt"</code> to today's ISO date (e.g. <code>"2025-06-01T10:00:00.000Z"</code>). Commit the file — GitHub Pages deploys automatically.</p>
+      </div>
+    </div>
+  </div>
 
-<script src="js/dashboard.js" type="module"></script>
+  <!-- Step 4 -->
+  <div class="draft-item" style="margin-bottom:2.5rem">
+    <div class="draft-summary" style="cursor:default">
+      <div class="draft-info">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.4rem">
+          <span style="background:#DC2626;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">4</span>
+          <h3 style="margin:0">Delete a draft</h3>
+        </div>
+        <p style="color:var(--muted);margin:0 0 0 2.6rem">Remove the entire post object from the JSON array in the GitHub editor and commit.</p>
+      </div>
+    </div>
+  </div>
+
+  <a href="https://github.com/108mason/blog-engine/edit/master/blog/data/posts.json"
+     target="_blank" class="btn btn-green" style="display:inline-block">
+    Open posts.json in GitHub →
+  </a>
+  &nbsp;
+  <a href="https://github.com/108mason/blog-engine/actions"
+     target="_blank" class="btn btn-outline" style="display:inline-block;border-color:var(--green);color:var(--green)">
+    Open GitHub Actions →
+  </a>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <span class="logo" style="color:#95D5B2">Rooted <span style="color:#D4AF37">&</span> Rising</span>
+    <span class="footer-copy">© 2025 Rooted & Rising.</span>
+  </div>
+</footer>
+
 </body>
 </html>

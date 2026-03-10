@@ -1,27 +1,21 @@
 import 'dotenv/config';
-import { startServer } from './server/api.js';
-import { startScheduler, runFullScan } from './scanner/scheduler.js';
+import { fetchAllFeeds } from './scanner/scanner.js';
+import { filterArticles } from './scanner/scorer.js';
+import { generateAllPosts } from './scanner/ideaGenerator.js';
 
-const args = process.argv.slice(2);
-
-if (args.includes('--scan')) {
-  // One-time scan then keep server + scheduler running
-  console.log('[App] Mode: scan + server');
-  startServer();
-  startScheduler();
-  runFullScan();
-
-} else if (args.includes('--server')) {
-  // API server only, no scanner
-  console.log('[App] Mode: server only');
-  startServer();
-
-} else {
-  // Default daemon: server + scheduled scanner
-  console.log('[App] Mode: daemon (server + scheduler)');
-  startServer();
-  startScheduler();
+async function runScan() {
+  console.log('[App] Starting scan pipeline...');
+  const articles = await fetchAllFeeds();
+  const scored   = filterArticles(articles);
+  console.log(`[App] ${scored.length} articles passed scoring threshold`);
+  await generateAllPosts(scored);
+  console.log('[App] Done — new drafts written to blog/data/posts.json');
 }
+
+runScan().catch(err => {
+  console.error('[App] Fatal error:', err.message);
+  process.exit(1);
+});
 
 // Phase 2 placeholders:
 // TODO: Google Sheets content calendar sync

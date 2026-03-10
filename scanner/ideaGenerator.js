@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { savePost } from '../server/db.js';
+import { v4 as uuidv4 } from 'uuid';
+import { savePost } from './store.js';
 
 const client = new Anthropic();
 
@@ -41,15 +42,19 @@ Generate a complete blog post draft based on this source.`;
     const raw = response.content[0].text.trim();
     const post = JSON.parse(raw);
 
-    // Merge in fields from the article that Claude might not have set correctly
-    post.sourceTitle = article.title;
-    post.sourceUrl = article.url;
-    post.relevanceScore = article.relevanceScore;
-    post.status = 'draft';
+    const saved = savePost({
+      ...post,
+      id: uuidv4(),
+      sourceTitle: article.title,
+      sourceUrl: article.url,
+      relevanceScore: article.relevanceScore,
+      status: 'draft',
+      createdAt: new Date().toISOString(),
+      publishedAt: null
+    });
 
-    savePost(post);
-    console.log(`[IdeaGen] Saved draft: "${post.title}"`);
-    return post;
+    if (saved) console.log(`[IdeaGen] Saved draft: "${post.title}"`);
+    return saved;
   } catch (err) {
     console.error(`[IdeaGen] Failed to generate post for "${article.title}": ${err.message}`);
     return null;

@@ -1,4 +1,4 @@
-import { API_BASE, cardHTML } from './posts.js';
+import { fetchPublished, cardHTML } from './posts.js';
 
 const container = document.getElementById('categoryPosts');
 const heading   = document.getElementById('catHeading');
@@ -15,7 +15,6 @@ const CAT_ICONS = {
 let allPosts = [];
 let activeCat = new URLSearchParams(window.location.search).get('cat') || '';
 
-// Update heading based on active category
 function updateHeading(cat) {
   if (cat) {
     heading.textContent = `${CAT_ICONS[cat] || ''} ${cat}`;
@@ -30,11 +29,9 @@ function updateHeading(cat) {
 
 function renderPosts(cat) {
   const filtered = cat ? allPosts.filter(p => p.category === cat) : allPosts;
-  if (!filtered.length) {
-    container.innerHTML = '<p style="color:var(--muted);grid-column:1/-1">No posts in this category yet.</p>';
-    return;
-  }
-  container.innerHTML = filtered.map(cardHTML).join('');
+  container.innerHTML = filtered.length
+    ? filtered.map(cardHTML).join('')
+    : '<p style="color:var(--muted);grid-column:1/-1">No posts in this category yet.</p>';
 }
 
 function setActiveFilter(cat) {
@@ -45,32 +42,24 @@ function setActiveFilter(cat) {
   updateHeading(cat);
   renderPosts(cat);
 
-  // Update URL without reload
   const url = new URL(window.location);
-  if (cat) {
-    url.searchParams.set('cat', cat);
-  } else {
-    url.searchParams.delete('cat');
-  }
+  cat ? url.searchParams.set('cat', cat) : url.searchParams.delete('cat');
   window.history.replaceState({}, '', url);
 }
 
-// Wire up filter buttons
 filters.addEventListener('click', (e) => {
   const btn = e.target.closest('.filter-btn');
   if (!btn) return;
   setActiveFilter(btn.dataset.cat);
 });
 
-// Initial data load
 async function init() {
   container.innerHTML = '<p style="color:var(--muted)">Loading…</p>';
   try {
-    const res = await fetch(`${API_BASE}/api/posts`);
-    allPosts = await res.json();
+    allPosts = await fetchPublished();
     setActiveFilter(activeCat);
-  } catch (err) {
-    container.innerHTML = '<p style="color:var(--muted)">Could not load posts. Make sure the API server is running.</p>';
+  } catch {
+    container.innerHTML = '<p style="color:var(--muted)">Could not load posts.</p>';
   }
 }
 

@@ -1,87 +1,96 @@
 # Rooted & Rising — Blog Engine
 
-Automated spiritual wellness blog with Claude-powered content generation.
+Automated spiritual wellness blog. Claude generates posts from RSS feeds via GitHub Actions. Everything hosted free on GitHub.
 
 ## Architecture
 
 ```
-Scanner → Scorer → Claude API → SQLite → Express API → GitHub Pages Blog
+GitHub Actions (cron every 12hrs)
+  → Fetches RSS feeds
+  → Scores articles by keyword relevance
+  → Claude API generates full blog post drafts
+  → Writes to blog/data/posts.json
+  → Commits & pushes to repo
+  → GitHub Pages serves the updated blog automatically
 ```
 
-- **Scanner** fetches RSS feeds every 12 hours
-- **Scorer** filters articles by keyword relevance (min score 20)
-- **Idea Generator** sends passing articles to Claude claude-sonnet-4-20250514 → returns full blog post draft
-- **API** serves drafts (protected) and published posts (public)
-- **Dashboard** lets you review, edit, and publish drafts
-- **Blog** renders published posts from the API
+No server. No database. No hosting costs.
 
 ---
 
-## Quick Start
+## Setup
 
-### 1. Install dependencies
+### 1. Add your API key as a GitHub Secret
+
+Go to **repo Settings → Secrets and variables → Actions → New repository secret**:
+
+| Name | Value |
+|------|-------|
+| `ANTHROPIC_API_KEY` | `sk-ant-...` |
+
+### 2. Enable GitHub Pages
+
+Go to **repo Settings → Pages → Source**: `Deploy from a branch` → Branch: `master` → Folder: `/blog`
+
+Blog will be live at: `https://108mason.github.io/blog-engine/`
+
+### 3. Trigger your first scan
+
+Go to **Actions → Scan & Generate Posts → Run workflow**
+
+New draft posts will appear in `blog/data/posts.json`.
+
+---
+
+## Managing Content (GitHub Web UI)
+
+All content management happens directly in `blog/data/posts.json` via the GitHub editor.
+
+**Publish a post:**
+1. Open `blog/data/posts.json` in GitHub
+2. Find the post (status: "draft")
+3. Change `"status": "draft"` → `"status": "published"`
+4. Set `"publishedAt"` to current ISO date: `"2025-06-01T10:00:00.000Z"`
+5. Commit — GitHub Pages deploys in ~30 seconds
+
+**Edit a post:** Edit any field directly in the JSON and commit.
+
+**Delete a post:** Remove the object from the array and commit.
+
+---
+
+## Run scanner locally
+
 ```bash
 npm install
-```
-
-### 2. Configure environment
-Edit `.env` with your actual values:
-```
-ANTHROPIC_API_KEY=sk-ant-...
-DASHBOARD_PASSWORD=choose_a_strong_password
-PORT=3000
-```
-
-### 3. Run locally
-
-```bash
-# Full daemon (server + 12hr cron)
-npm start
-
-# Run one scan immediately, then keep running
+# add ANTHROPIC_API_KEY to .env
 npm run scan
-
-# API server only (no scanner)
-npm run server
 ```
 
 ---
 
-## Deployment
+## Post JSON structure
 
-### Backend → Railway
-
-1. Push repo to GitHub (public or private)
-2. Create a new Railway project → **Deploy from GitHub**
-3. Set **Root Directory** to `/` and **Start Command** to `node index.js`
-4. Add environment variables in Railway dashboard:
-   - `ANTHROPIC_API_KEY`
-   - `DASHBOARD_PASSWORD`
-   - `PORT` (Railway sets this automatically)
-5. Copy the Railway public URL (e.g. `https://blog-engine-production.up.railway.app`)
-
-### Frontend → GitHub Pages
-
-1. Update `API_BASE` in [blog/js/posts.js](blog/js/posts.js) and [blog/js/dashboard.js](blog/js/dashboard.js) to your Railway URL
-2. Go to repo **Settings → Pages → Source**: select the `blog/` folder
-3. Blog live at `https://yourusername.github.io/blog-engine/`
-
----
-
-## API Reference
-
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| GET | `/api/posts` | Public | All published posts |
-| GET | `/api/posts/:slug` | Public | Single published post |
-| GET | `/api/posts/category/:cat` | Public | Posts by category |
-| GET | `/api/drafts` | Protected | All drafts |
-| PATCH | `/api/drafts/:id` | Protected | Update draft |
-| POST | `/api/publish/:id` | Protected | Publish a draft |
-| POST | `/api/unpublish/:id` | Protected | Move back to draft |
-| DELETE | `/api/drafts/:id` | Protected | Delete draft |
-
-**Auth:** Pass `Authorization: Bearer YOUR_PASSWORD` header on protected routes.
+```json
+{
+  "id": "uuid",
+  "title": "Your Post Title",
+  "slug": "your-post-title",
+  "category": "Manifestation | Holistic Health | Supplements | Lifestyle",
+  "type": "Trending | Evergreen",
+  "hook": "Two sentence intro...",
+  "body": "Full markdown body...",
+  "metaDescription": "155 char SEO summary",
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "publishTiming": "ASAP | This Week | This Month",
+  "sourceTitle": "Original article title",
+  "sourceUrl": "https://...",
+  "relevanceScore": 42,
+  "status": "draft",
+  "createdAt": "2025-06-01T08:00:00.000Z",
+  "publishedAt": null
+}
+```
 
 ---
 

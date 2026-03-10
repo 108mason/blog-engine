@@ -1,17 +1,15 @@
-// ── Config ──────────────────────────────────────────────────────────────────
-// Replace with your Railway/Render URL after deploying
-const API_BASE = window.API_BASE_URL || 'http://localhost:3000';
+// Fetches from static posts.json — works on GitHub Pages and locally
+const POSTS_URL = './data/posts.json';
 
 // ── Utilities ────────────────────────────────────────────────────────────────
 
-function formatDate(iso) {
+export function formatDate(iso) {
   if (!iso) return '';
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function cardHTML(post) {
+export function cardHTML(post) {
   const date = formatDate(post.publishedAt);
-  const tags = Array.isArray(post.tags) ? post.tags.join(', ') : '';
   return `
     <div class="card" style="animation-delay:${Math.random() * .3}s">
       <div class="card-body">
@@ -29,25 +27,26 @@ function cardHTML(post) {
     </div>`;
 }
 
+async function fetchPublished() {
+  const res = await fetch(POSTS_URL);
+  const all = await res.json();
+  return all.filter(p => p.status === 'published');
+}
+
 // ── Homepage: Featured Posts ─────────────────────────────────────────────────
 
 async function loadFeaturedPosts() {
   const container = document.getElementById('featuredPosts');
   if (!container) return;
-
   try {
-    const res = await fetch(`${API_BASE}/api/posts`);
-    const posts = await res.json();
-    const featured = posts.slice(0, 6);
-
-    if (!featured.length) {
-      container.innerHTML = '<p style="color:var(--muted)">No posts published yet. Check back soon!</p>';
+    const posts = await fetchPublished();
+    if (!posts.length) {
+      container.innerHTML = '<p style="color:var(--muted)">No posts published yet — check back soon!</p>';
       return;
     }
-
-    container.innerHTML = featured.map(cardHTML).join('');
+    container.innerHTML = posts.slice(0, 6).map(cardHTML).join('');
   } catch (err) {
-    container.innerHTML = `<p style="color:var(--muted)">Could not connect to API. Start the server with <code>node index.js</code></p>`;
+    container.innerHTML = '<p style="color:var(--muted)">Could not load posts. Try refreshing.</p>';
   }
 }
 
@@ -64,15 +63,18 @@ async function loadSinglePost() {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/posts/${encodeURIComponent(slug)}`);
-    if (!res.ok) throw new Error('Not found');
-    const post = await res.json();
+    const posts = await fetchPublished();
+    const post = posts.find(p => p.slug === slug);
+    if (!post) throw new Error('Not found');
 
     document.title = `${post.title} — Rooted & Rising`;
-    document.getElementById('pageDesc').content = post.metaDescription || '';
+    const descEl = document.getElementById('pageDesc');
+    if (descEl) descEl.content = post.metaDescription || '';
 
     const tags = Array.isArray(post.tags) ? post.tags : [];
-    const bodyHTML = typeof marked !== 'undefined' ? marked.parse(post.body || '') : (post.body || '').replace(/\n/g, '<br>');
+    const bodyHTML = typeof marked !== 'undefined'
+      ? marked.parse(post.body || '')
+      : (post.body || '').replace(/\n/g, '<br>');
 
     container.innerHTML = `
       <div class="post-header">
@@ -98,28 +100,24 @@ async function loadSinglePost() {
         <button class="share-btn share-copy" onclick="copyLink()">Copy Link</button>
       </div>`;
 
-    // Load related posts
-    loadRelatedPosts(post.category, post.slug);
-  } catch (err) {
+    loadRelatedPosts(posts, post.category, post.slug);
+  } catch {
     container.innerHTML = '<p style="text-align:center;padding:4rem;color:var(--muted)">Post not found.</p>';
   }
 }
 
-async function loadRelatedPosts(category, currentSlug) {
-  if (!category) return;
-  try {
-    const res = await fetch(`${API_BASE}/api/posts/category/${encodeURIComponent(category)}`);
-    const posts = await res.json();
-    const related = posts.filter(p => p.slug !== currentSlug).slice(0, 3);
-    if (!related.length) return;
+function loadRelatedPosts(allPosts, category, currentSlug) {
+  const related = allPosts
+    .filter(p => p.category === category && p.slug !== currentSlug)
+    .slice(0, 3);
+  if (!related.length) return;
 
-    const section = document.getElementById('relatedSection');
-    const container = document.getElementById('relatedPosts');
-    if (section && container) {
-      section.style.display = 'block';
-      container.innerHTML = related.map(cardHTML).join('');
-    }
-  } catch (_) {}
+  const section = document.getElementById('relatedSection');
+  const container = document.getElementById('relatedPosts');
+  if (section && container) {
+    section.style.display = 'block';
+    container.innerHTML = related.map(cardHTML).join('');
+  }
 }
 
 // ── Share Helpers ─────────────────────────────────────────────────────────────
@@ -139,4 +137,4 @@ window.copyLink = () => {
 if (document.getElementById('featuredPosts')) loadFeaturedPosts();
 if (document.getElementById('postContent'))  loadSinglePost();
 
-export { API_BASE, cardHTML, formatDate };
+export { fetchPublished };
