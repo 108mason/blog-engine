@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="pageTitle">Articles — Rooted & Rising</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="header-inner">
+    <a href="index.html" class="logo">Rooted <span>&</span> Rising</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="category.html?cat=Manifestation">Manifestation</a>
+      <a href="category.html?cat=Holistic Health">Health</a>
+      <a href="category.html?cat=Supplements">Supplements</a>
+      <a href="category.html?cat=Lifestyle">Lifestyle</a>
+      <a href="ebook.html" class="nav-cta">Free eBook</a>
+    </nav>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="index.html">Home</a>
+    <a href="category.html?cat=Manifestation">Manifestation</a>
+    <a href="category.html?cat=Holistic Health">Holistic Health</a>
+    <a href="category.html?cat=Supplements">Supplements</a>
+    <a href="category.html?cat=Lifestyle">Lifestyle</a>
+    <a href="ebook.html">Free eBook</a>
+  </nav>
+</header>
+
+<!-- ── Category Hero ── -->
+<section class="hero" style="padding:3rem 1.25rem">
+  <div class="container">
+    <h1 id="catHeading">All Articles</h1>
+    <p id="catSubhead">Explore our full library of wisdom</p>
+  </div>
+</section>
+
+<!-- ── Articles ── -->
+<section>
+  <div class="container">
+    <!-- Filter Tabs -->
+    <div class="cat-filters" id="catFilters">
+      <button class="filter-btn" data-cat="">All</button>
+      <button class="filter-btn" data-cat="Manifestation">🌙 Manifestation</button>
+      <button class="filter-btn" data-cat="Holistic Health">🌿 Holistic Health</button>
+      <button class="filter-btn" data-cat="Supplements">🌱 Supplements</button>
+      <button class="filter-btn" data-cat="Lifestyle">☀️ Lifestyle</button>
+    </div>
+
+    <div class="cards-grid" id="categoryPosts">
+      <p style="color:var(--muted)">Loading articles…</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-inner">
+    <span class="logo" style="color:#95D5B2">Rooted <span style="color:#D4AF37">&</span> Rising</span>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="category.html">Categories</a>
+      <a href="ebook.html">eBook</a>
+    </nav>
+    <span class="footer-copy">© 2025 Rooted & Rising.</span>
+  </div>
+</footer>
+
+<script src="js/category.js" type="module"></script>
+<script>
+  document.getElementById('hamburger').addEventListener('click', () => {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Environment
+.env
+
+# Dependencies
+node_modules/
+
+# Database
+data/blog.db
+data/blog.db-shm
+data/blog.db-wal
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp

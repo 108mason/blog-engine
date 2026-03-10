@@ -1,0 +1,16 @@
+{
+  "high_priority": [
+    "manifestation", "law of attraction", "abundance mindset",
+    "holistic health", "natural supplements", "adaptogens",
+    "alternative lifestyle", "spiritual wellness", "gut health",
+    "detox", "herbal remedies", "conscious living"
+  ],
+  "medium_priority": [
+    "meditation", "journaling", "vision board", "energy healing",
+    "plant medicine", "sleep optimization", "mindfulness",
+    "minimalism", "chakra", "breathwork"
+  ],
+  "exclude": [
+    "pharmaceutical", "surgery", "prescription"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "blog-engine",
+  "version": "1.0.0",
+  "description": "Automated spiritual wellness blog engine with Claude-powered content generation",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "scan": "node index.js --scan",
+    "server": "node index.js --server"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "axios": "latest",
+    "better-sqlite3": "latest",
+    "cors": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "node-cron": "latest",
+    "rss-parser": "latest",
+    "uuid": "latest"
+  }
+}
