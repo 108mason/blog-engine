@@ -3,189 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rooted & Rising — Manifestation, Holistic Health & Conscious Living</title>
-  <meta name="description" content="A spiritual wellness blog for those who believe in the power of intention, natural living, and conscious abundance." />
+  <title>Sacred Roots — Content Hub</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-<!-- ── Header ── -->
 <header>
   <div class="header-inner">
-    <a href="index.html" class="logo">Rooted <span>&</span> Rising</a>
-    <nav>
-      <a href="index.html" class="active">Home</a>
-      <a href="category.html?cat=Manifestation">Manifestation</a>
-      <a href="category.html?cat=Holistic Health">Health</a>
-      <a href="category.html?cat=Supplements">Supplements</a>
-      <a href="category.html?cat=Lifestyle">Lifestyle</a>
-      <a href="ebook.html" class="nav-cta">Free eBook</a>
-    </nav>
-    <button class="hamburger" id="hamburger" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
+    <div class="logo">🌿 Sacred Roots Content Hub</div>
+    <div class="header-actions">
+      <span id="statsBar"></span>
+      <button class="btn btn-sm" id="settingsBtn">⚙ Settings</button>
+      <button class="btn btn-primary btn-sm" id="scanBtn">▶ Run Scan</button>
+    </div>
   </div>
-  <nav class="mobile-nav" id="mobileNav">
-    <a href="index.html">Home</a>
-    <a href="category.html?cat=Manifestation">Manifestation</a>
-    <a href="category.html?cat=Holistic Health">Holistic Health</a>
-    <a href="category.html?cat=Supplements">Supplements</a>
-    <a href="category.html?cat=Lifestyle">Lifestyle</a>
-    <a href="ebook.html">Free eBook</a>
-  </nav>
 </header>
 
-<!-- ── Hero ── -->
-<section class="hero">
-  <div class="container">
-    <h1>You Are Already Abundant.<br>Let's Remember Together.</h1>
-    <p>Where manifestation meets holistic health — a sanctuary for conscious seekers ready to align with their highest self.</p>
-    <a href="category.html" class="btn btn-primary">Begin Your Journey</a>
-  </div>
-</section>
-
-<!-- ── Mission ── -->
-<div class="mission">
-  <div class="container">
-    <p>We believe that true wellness is rooted in the harmony of mind, body, and spirit. Through ancient wisdom and modern insight, we explore the practices, plants, and perspectives that awaken the abundant life already within you. This is not a destination — it is a becoming.</p>
-  </div>
-</div>
-
-<!-- ── Featured Posts ── -->
-<section id="featured">
-  <div class="container">
-    <div class="section-title">
-      <h2>Latest Wisdom</h2>
-      <p>Fresh insights from the intersection of spirit and science</p>
-    </div>
-    <div class="cards-grid" id="featuredPosts">
-      <!-- Populated by posts.js -->
-      <div class="card" style="animation-delay:.1s">
-        <div class="card-body">
-          <div class="card-meta"><span class="badge">Loading…</span></div>
-          <h3><a href="#">Fetching latest posts…</a></h3>
-          <p>Please ensure the API server is running.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Leaf Divider ── -->
-<div class="leaf-divider">✦ ❧ ✦</div>
-
-<!-- ── Categories Strip ── -->
-<section class="categories-strip">
-  <div class="cats-grid">
-    <a href="category.html?cat=Manifestation" class="cat-tile">
-      <div class="cat-icon">🌙</div>
-      <span>Manifestation</span>
-    </a>
-    <a href="category.html?cat=Holistic Health" class="cat-tile">
-      <div class="cat-icon">🌿</div>
-      <span>Holistic Health</span>
-    </a>
-    <a href="category.html?cat=Supplements" class="cat-tile">
-      <div class="cat-icon">🌱</div>
-      <span>Supplements</span>
-    </a>
-    <a href="category.html?cat=Lifestyle" class="cat-tile">
-      <div class="cat-icon">☀️</div>
-      <span>Lifestyle</span>
-    </a>
-  </div>
-</section>
-
-<!-- ── eBook Banner ── -->
-<div class="ebook-banner">
-  <div class="ebook-inner">
-    <div class="ebook-mockup">
-      <div>
-        <strong>Rooted &amp; Rising</strong><br><br>
-        Your Guide to Conscious Abundance
-      </div>
-    </div>
-    <div class="ebook-text">
-      <h2>Unlock Your Abundance Blueprint</h2>
-      <p>A step-by-step guide to aligning your mindset, body, and spirit with the abundant life you were born to live. Includes daily rituals, supplement guides, and manifestation practices.</p>
-      <a href="ebook.html" class="btn btn-primary">Get the eBook →</a>
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h3>Settings</h3>
+    <label>GitHub Personal Access Token
+      <small>Needs <code>repo</code> scope — write access to both repos</small>
+      <input type="password" id="patInput" placeholder="github_pat_..." />
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="savePat">Save</button>
+      <button class="btn" id="closeSettings">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- ── Testimonials ── -->
-<section class="testimonials">
-  <div class="container">
-    <div class="section-title">
-      <h2>Voices from the Community</h2>
-    </div>
-    <div class="testimonials-grid">
-      <div class="testimonial">
-        <blockquote>"Since discovering this blog, my morning routine has completely transformed. The supplement guides alone changed my energy levels in two weeks."</blockquote>
-        <cite>— Amara J., Yoga Instructor</cite>
-      </div>
-      <div class="testimonial">
-        <blockquote>"I was skeptical about manifestation until I followed the practices shared here. Three months later, I'm living in my dream apartment."</blockquote>
-        <cite>— Lena K., Creative Director</cite>
-      </div>
-      <div class="testimonial">
-        <blockquote>"The most grounded, authentic wellness content I've found online. Science meets spirit in a way that just makes sense."</blockquote>
-        <cite>— Marcus T., Naturopath</cite>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Newsletter ── -->
-<section class="newsletter">
-  <div class="container">
-    <div class="section-title">
-      <h2>Join the Inner Circle</h2>
-      <p>Receive weekly wisdom, new posts, and exclusive rituals — straight to your inbox.</p>
-    </div>
-    <form class="newsletter-form" onsubmit="handleNewsletter(event)">
-      <input type="email" id="nlEmail" placeholder="your@email.com" required />
-      <button type="submit" class="btn btn-green">Subscribe</button>
-    </form>
-  </div>
-</section>
-
-<!-- ── Social Bar ── -->
-<div class="social-bar">
-  <p>Follow the journey</p>
-  <div class="social-links">
-    <a href="#" aria-label="Facebook" title="Facebook">f</a>
-    <a href="#" aria-label="X / Twitter" title="X">𝕏</a>
-    <a href="#" aria-label="Instagram" title="Instagram">📷</a>
-  </div>
+<!-- No PAT warning -->
+<div id="noPat" class="notice notice-warn" style="display:none">
+  ⚠ No GitHub token set. <button class="btn btn-sm" onclick="document.getElementById('settingsBtn').click()">Add token</button> to enable publishing to Sacred Roots.
 </div>
 
-<!-- ── Footer ── -->
-<footer>
-  <div class="footer-inner">
-    <span class="logo" style="color:#95D5B2">Rooted <span style="color:#D4AF37">&</span> Rising</span>
-    <nav class="footer-nav">
-      <a href="index.html">Home</a>
-      <a href="category.html">Categories</a>
-      <a href="ebook.html">eBook</a>
-      <a href="dashboard.html">Dashboard</a>
-    </nav>
-    <span class="footer-copy">© 2025 Rooted & Rising. All rights reserved.</span>
+<!-- Main -->
+<main class="container">
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="drafts">Drafts <span class="pill" id="draftCount">0</span></button>
+    <button class="tab-btn" data-tab="published">Published <span class="pill" id="pubCount">0</span></button>
   </div>
-</footer>
 
-<script src="js/posts.js" type="module"></script>
-<script>
-  // Hamburger toggle
-  document.getElementById('hamburger').addEventListener('click', () => {
-    document.getElementById('mobileNav').classList.toggle('open');
-  });
+  <!-- Drafts -->
+  <div id="tabDrafts">
+    <div id="draftsList"><p class="muted">Loading drafts…</p></div>
+  </div>
 
-  function handleNewsletter(e) {
-    e.preventDefault();
-    const email = document.getElementById('nlEmail').value;
-    window.location.href = `mailto:your@email.com?subject=Newsletter Signup&body=Please subscribe ${email}`;
-  }
-</script>
+  <!-- Published -->
+  <div id="tabPublished" style="display:none">
+    <div id="publishedList"><p class="muted">Loading…</p></div>
+  </div>
+
+</main>
+
+<script src="js/hub.js" type="module"></script>
 </body>
 </html>
