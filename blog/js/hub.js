@@ -101,8 +101,8 @@ function draftCard(post) {
         ${Object.keys(CAT_MAP).map(c => `<option value="${c}" ${post.category === c ? 'selected' : ''}>${c}</option>`).join('')}
       </select>
 
-      <span class="field-label">Full Body (preview)</span>
-      <div class="body-preview">${esc(post.body || '')}</div>
+      <span class="field-label">Full Body</span>
+      <textarea class="field body-field" data-field="body" style="min-height:280px;font-family:monospace;font-size:.82rem;line-height:1.6">${esc(post.body || '')}</textarea>
 
       <div class="publish-row">
         <div>
@@ -131,6 +131,8 @@ function draftCard(post) {
           <button class="btn btn-danger del-btn">🗑 Delete</button>
         </div>
       </div>
+      <span class="field-label" style="margin-top:1rem">Affiliate Links <small style="text-transform:none;letter-spacing:0;font-weight:400">One per line: Product Name | https://amzn.to/...</small></span>
+      <textarea class="field aff-links" style="min-height:72px;font-size:.82rem" placeholder="Ashwagandha Root | https://amzn.to/abc123&#10;Magnesium Glycinate | https://amzn.to/xyz456">${(post.affiliateLinks||[]).map(l=>l.name+'|'+l.url).join('\n')}</textarea>
       ${tags ? `<p style="font-size:.78rem;color:var(--muted);margin-top:.75rem">Tags: ${tags}</p>` : ''}
     </div>
   </div>`;
@@ -205,21 +207,23 @@ function bindDraftEvents() {
   document.querySelectorAll('.pub-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!getToken()) { alert('Set your GitHub token in Settings first.'); return; }
-      const card    = btn.closest('.draft-card');
-      const id      = card.dataset.id;
-      const post    = allPosts.find(p => p.id === id);
-      const title   = card.querySelector('[data-field="title"]').value.trim();
-      const hook    = card.querySelector('[data-field="hook"]').value.trim();
-      const category= card.querySelector('[data-field="category"]').value;
-      const target  = card.querySelector('.pub-target').value;
-      const sub     = card.querySelector('.pub-sub').value.trim();
-      const emoji   = card.querySelector('.pub-emoji').value.trim();
+      const card      = btn.closest('.draft-card');
+      const id        = card.dataset.id;
+      const post      = allPosts.find(p => p.id === id);
+      const title     = card.querySelector('[data-field="title"]').value.trim();
+      const hook      = card.querySelector('[data-field="hook"]').value.trim();
+      const category  = card.querySelector('[data-field="category"]').value;
+      const body      = card.querySelector('[data-field="body"]').value.trim();
+      const target    = card.querySelector('.pub-target').value;
+      const sub       = card.querySelector('.pub-sub').value.trim();
+      const emoji     = card.querySelector('.pub-emoji').value.trim();
+      const affLinks  = parseAffLinks(card.querySelector('.aff-links').value);
 
       btn.disabled = true;
       btn.textContent = '⏳ Publishing…';
       try {
-        await injectIntoSacredRoots({ ...post, title, hook, category }, target, sub, emoji);
-        await markPublished(id);
+        await injectIntoSacredRoots({ ...post, title, hook, category, body, affiliateLinks: affLinks }, target, sub, emoji);
+        await markPublished(id, affLinks);
         toast(`✅ Published to ${target}`);
       } catch (err) {
         toast(`❌ ${err.message}`, true);
@@ -276,6 +280,14 @@ function bindDraftEvents() {
   });
 }
 
+// ── Affiliate helpers ─────────────────────────────────────────────────────────
+function parseAffLinks(raw) {
+  return (raw || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const [name, url] = l.split('|').map(s => s.trim());
+    return name && url ? { name, url } : null;
+  }).filter(Boolean);
+}
+
 // ── SEO helpers ───────────────────────────────────────────────────────────────
 function slugify(text) {
   return (text || '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').slice(0, 80);
@@ -310,14 +322,47 @@ function mdToHtml(md) {
   return out.join('\n');
 }
 
-function buildPostPage(post, catFile, emoji) {
-  const slug    = post.slug || slugify(post.title);
-  const catName = post.category || 'Holistic Health';
-  const date    = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const desc    = (post.metaDescription || post.hook || '').replace(/"/g, '&quot;');
-  const body    = mdToHtml(post.body);
-  const title   = (post.title || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const hook    = (post.hook  || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function buildPostPage(post, catFile, emoji, relatedPosts = []) {
+  const slug      = post.slug || slugify(post.title);
+  const catName   = post.category || 'Holistic Health';
+  const dateISO   = new Date().toISOString();
+  const dateStr   = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const desc      = (post.metaDescription || post.hook || '').replace(/"/g, '&quot;');
+  const body      = mdToHtml(post.body);
+  const title     = (post.title || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const hook      = (post.hook  || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const wordCount = (post.body || '').trim().split(/\s+/).length;
+  const readTime  = Math.max(1, Math.round(wordCount / 200));
+  const affLinks  = post.affiliateLinks || [];
+
+  const productBlock = affLinks.length ? `
+  <div class="affiliate-box">
+    <h3>🌿 Recommended Products</h3>
+    <div class="product-grid">
+      ${affLinks.map(p => `<a href="${p.url}" class="product-card" target="_blank" rel="noopener sponsored"><span class="product-name">${p.name}</span><span class="product-cta">Shop on Amazon →</span></a>`).join('')}
+    </div>
+  </div>` : '';
+
+  const relatedBlock = relatedPosts.length ? `
+  <div class="related-posts">
+    <h3>Related Articles</h3>
+    <div class="related-grid">
+      ${relatedPosts.map(p => {
+        const s = p.slug || slugify(p.title);
+        return `<a href="${s}.html" class="related-card"><div class="related-title">${p.title}</div><div class="related-meta">${p.category}</div></a>`;
+      }).join('')}
+    </div>
+  </div>` : '';
+
+  const schema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.metaDescription || post.hook || '',
+    datePublished: dateISO,
+    author: { '@type': 'Organization', name: 'Sacred Roots Wellness' },
+    publisher: { '@type': 'Organization', name: 'Sacred Roots Wellness', url: 'https://108mason.github.io/sacred-roots/' }
+  });
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -329,6 +374,7 @@ function buildPostPage(post, catFile, emoji) {
   <link rel="canonical" href="https://108mason.github.io/sacred-roots/posts/${slug}.html" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>" />
+  <script type="application/ld+json">${schema}</script>
   <style>
     .post-body { max-width: 760px; margin: 0 auto; }
     .post-body h2 { font-family: var(--font-serif); color: var(--green-dark); margin: 2rem 0 .75rem; font-size: 1.5rem; }
@@ -339,7 +385,22 @@ function buildPostPage(post, catFile, emoji) {
     .post-body strong { color: var(--text-dark); }
     .post-meta-bar { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid var(--cream-dark); }
     .post-meta-bar .post-category { background:var(--green-light); color:var(--green-dark); padding:.2rem .75rem; border-radius:50px; font-size:.8rem; font-weight:700; }
-    .post-meta-bar .post-date { color:var(--text-light); font-size:.85rem; }
+    .post-meta-bar .post-date, .post-read-time { color:var(--text-light); font-size:.85rem; }
+    .affiliate-disclosure { background:#FFFBEB; border-left:3px solid #F59E0B; padding:.6rem 1rem; border-radius:0 6px 6px 0; font-size:.78rem; color:#92400E; margin-bottom:1.5rem; }
+    .affiliate-box { background:var(--cream); border:1px solid var(--cream-dark); border-radius:var(--radius-md); padding:1.5rem; margin:2rem 0; }
+    .affiliate-box h3 { font-family:var(--font-serif); color:var(--green-dark); margin-bottom:1rem; font-size:1.1rem; }
+    .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:1rem; }
+    .product-card { display:block; background:#fff; border:1px solid var(--cream-dark); border-radius:var(--radius-sm); padding:1rem; text-decoration:none; transition:var(--transition); }
+    .product-card:hover { border-color:var(--green-sage); box-shadow:var(--shadow-sm); }
+    .product-name { display:block; font-weight:600; color:var(--text-dark); margin-bottom:.5rem; font-size:.9rem; }
+    .product-cta { display:block; color:var(--green-deep); font-size:.82rem; font-weight:600; }
+    .related-posts { margin-top:3rem; padding-top:2rem; border-top:1px solid var(--cream-dark); }
+    .related-posts h3 { font-family:var(--font-serif); color:var(--green-dark); margin-bottom:1.25rem; font-size:1.2rem; }
+    .related-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:1rem; }
+    .related-card { display:block; background:var(--cream); border:1px solid var(--cream-dark); border-radius:var(--radius-sm); padding:1rem; text-decoration:none; transition:var(--transition); }
+    .related-card:hover { background:#fff; box-shadow:var(--shadow-sm); }
+    .related-title { font-weight:600; color:var(--text-dark); font-size:.88rem; margin-bottom:.3rem; }
+    .related-meta { color:var(--text-light); font-size:.78rem; }
   </style>
 </head>
 <body>
@@ -375,9 +436,13 @@ function buildPostPage(post, catFile, emoji) {
         <article class="post-body">
           <div class="post-meta-bar">
             <span class="post-category">${catName}</span>
-            <span class="post-date">${date}</span>
+            <span class="post-date">${dateStr}</span>
+            <span class="post-read-time">~${readTime} min read</span>
           </div>
+          <p class="affiliate-disclosure">⚠️ <strong>Disclosure:</strong> Sacred Roots may earn a small commission from links in this post, at no extra cost to you.</p>
           ${body}
+          ${productBlock}
+          ${relatedBlock}
         </article>
       </div>
     </section>
@@ -405,7 +470,8 @@ async function injectIntoSacredRoots(post, targetFile, sub, emoji) {
   const slug = post.slug || slugify(post.title);
 
   // 1. Create (or update) individual post page with full SEO meta
-  const pageHtml   = buildPostPage(post, targetFile, emoji);
+  const relatedPosts = allPosts.filter(p => p.status === 'published' && p.id !== post.id && p.category === post.category).slice(0, 3);
+  const pageHtml    = buildPostPage(post, targetFile, emoji, relatedPosts);
   const existingSha = await ghGetSha(SACRED_ROOTS, `posts/${slug}.html`);
   await ghPut(SACRED_ROOTS, `posts/${slug}.html`, pageHtml, existingSha,
     `post: create page for "${post.title}"`);
@@ -431,16 +497,43 @@ async function injectIntoSacredRoots(post, targetFile, sub, emoji) {
   const updated = current.replace(MARKER, newCard + '              ' + MARKER);
   await ghPut(SACRED_ROOTS, targetFile, updated, fileData.sha,
     `post: add "${post.title}" to ${targetFile}`);
+
+  // 3. Update sitemap
+  await updateSitemap(slug);
+}
+
+async function updateSitemap(newSlug) {
+  const BASE    = 'https://108mason.github.io/sacred-roots';
+  const statics = ['', 'blog.html', 'health.html', 'manifestation.html', 'supplements.html', 'lifestyle.html'];
+  const postSlugs = allPosts
+    .filter(p => p.status === 'published')
+    .map(p => p.slug || slugify(p.title));
+  // Include the newly published slug in case allPosts isn't updated yet
+  if (newSlug && !postSlugs.includes(newSlug)) postSlugs.unshift(newSlug);
+
+  const urls = [
+    ...statics.map(f => `${BASE}/${f}`),
+    ...postSlugs.map(s => `${BASE}/posts/${s}.html`)
+  ];
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url><loc>${u}</loc></url>`).join('\n')}
+</urlset>`;
+
+  const sha = await ghGetSha(SACRED_ROOTS, 'sitemap.xml');
+  await ghPut(SACRED_ROOTS, 'sitemap.xml', sitemap, sha, 'chore: update sitemap');
 }
 
 // ── Update posts.json in blog-engine repo ────────────────────────────────────
-async function markPublished(id) {
+async function markPublished(id, affiliateLinks = []) {
   const fileData = await ghGet(BLOG_ENGINE_REPO, 'blog/data/posts.json');
   const posts    = JSON.parse(decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, '')))));
   const idx      = posts.findIndex(p => p.id === id);
   if (idx === -1) return;
   posts[idx].status      = 'published';
   posts[idx].publishedAt = new Date().toISOString();
+  if (affiliateLinks.length) posts[idx].affiliateLinks = affiliateLinks;
   await ghPut(BLOG_ENGINE_REPO, 'blog/data/posts.json',
     JSON.stringify(posts, null, 2), fileData.sha,
     `chore: mark post "${posts[idx].title}" as published`);

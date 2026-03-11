@@ -19,6 +19,7 @@ Given a source article, generate a complete blog post draft including:
 10. sourceTitle — original article title
 11. sourceUrl — original article URL
 12. relevanceScore — passed in from scorer
+13. recommendedProducts — array of 3-5 specific product names (supplements, books, tools) relevant to this post that could be sold as Amazon affiliate products. Use real, well-known product names (e.g. "Garden of Life Magnesium", "Organic Ashwagandha by Himalaya"). Just product names, no URLs.
 
 Return strictly as a single JSON object. No markdown, no preamble.`;
 
