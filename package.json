@@ -12,6 +12,7 @@
     "dotenv": "latest",
     "node-cron": "latest",
     "rss-parser": "latest",
+    "twitter-api-v2": "^1.17.0",
     "uuid": "latest"
   }
 }

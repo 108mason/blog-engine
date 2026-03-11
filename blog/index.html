@@ -27,6 +27,10 @@
       <small>Needs <code>repo</code> scope — write access to both repos</small>
       <input type="password" id="patInput" placeholder="github_pat_..." />
     </label>
+    <label style="margin-top:1rem;display:block">Anthropic API Key
+      <small>Used to draft social posts directly in the browser</small>
+      <input type="password" id="anthropicKeyInput" placeholder="sk-ant-..." />
+    </label>
     <div class="modal-actions">
       <button class="btn btn-primary" id="savePat">Save</button>
       <button class="btn" id="closeSettings">Cancel</button>
@@ -46,6 +50,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="drafts">Drafts <span class="pill" id="draftCount">0</span></button>
     <button class="tab-btn" data-tab="published">Published <span class="pill" id="pubCount">0</span></button>
+    <button class="tab-btn" data-tab="social">Social <span class="pill" id="socialCount">0</span></button>
   </div>
 
   <!-- Drafts -->
@@ -58,7 +63,29 @@
     <div id="publishedList"><p class="muted">Loading…</p></div>
   </div>
 
+  <!-- Social -->
+  <div id="tabSocial" style="display:none">
+    <div id="socialList"><p class="muted">Loading…</p></div>
+  </div>
+
 </main>
+
+<!-- Social Compose Modal -->
+<div class="modal-overlay" id="socialModal">
+  <div class="modal social-modal">
+    <h3 id="socialModalTitle">Schedule Social Post</h3>
+    <div id="socialPlatforms"></div>
+    <div class="modal-actions" style="flex-wrap:wrap;gap:.75rem;margin-top:1rem">
+      <button class="btn btn-humanize btn-sm" id="draftAllBtn">✨ Draft with Claude</button>
+      <div style="flex:1"></div>
+      <label style="font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.5rem">
+        Schedule for <input type="datetime-local" id="scheduledFor" />
+      </label>
+      <button class="btn btn-primary" id="confirmSchedule">Schedule</button>
+      <button class="btn" id="closeSocialModal">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script src="js/hub.js" type="module"></script>
 </body>

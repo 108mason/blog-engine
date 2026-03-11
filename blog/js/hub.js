@@ -13,8 +13,15 @@ const CAT_MAP = {
 };
 
 // ── Token ─────────────────────────────────────────────────────────────────────
-const getToken  = () => localStorage.getItem('gh_pat') || '';
-const saveToken = t => localStorage.setItem('gh_pat', t);
+const getToken        = () => localStorage.getItem('gh_pat') || '';
+const saveToken       = t  => localStorage.setItem('gh_pat', t);
+const getAnthropicKey = () => localStorage.getItem('anthropic_key') || '';
+const saveAnthropicKey= t  => localStorage.setItem('anthropic_key', t);
+
+// ── Social queue ───────────────────────────────────────────────────────────────
+const SOCIAL_QUEUE_PATH = 'blog/data/social-queue.json';
+let socialQueue = [];
+let currentSocialPost = null;
 
 // ── GitHub API helpers ────────────────────────────────────────────────────────
 function ghHeaders() {
@@ -559,6 +566,171 @@ async function deleteDraft(id) {
   updateStats();
 }
 
+// ── Social: load queue ────────────────────────────────────────────────────────
+async function loadSocialQueue() {
+  try {
+    const res = await fetch(`./data/social-queue.json?t=${Date.now()}`);
+    if (!res.ok) return [];
+    return res.json();
+  } catch { return []; }
+}
+
+// ── Social: render tab ────────────────────────────────────────────────────────
+function platformIcon(k) {
+  return k === 'x' ? '𝕏' : k === 'facebook' ? 'f' : '📷';
+}
+
+function renderSocial() {
+  const el   = document.getElementById('socialList');
+  const pubs = allPosts.filter(p => p.status === 'published');
+
+  const queueItems   = socialQueue.filter(i => i.status === 'scheduled')
+    .sort((a, b) => new Date(a.scheduledFor) - new Date(b.scheduledFor));
+  const recentPosted = socialQueue.filter(i => i.status !== 'scheduled').slice(-5).reverse();
+
+  const renderItem = (item, isPosted) => {
+    const platforms = Object.entries(item.platforms)
+      .filter(([, v]) => v.enabled)
+      .map(([k, v]) => {
+        const cls = isPosted ? (v.posted ? `badge-${k}` : 'badge-failed') : `badge-${k}`;
+        return `<span class="badge ${cls}">${platformIcon(k)} ${k}</span>`;
+      }).join(' ');
+    return `<div class="social-queue-item">
+      <div>
+        <div class="pub-title">${item.postTitle}</div>
+        <div class="pub-meta">${isPosted ? 'Posted' : 'Scheduled'} ${formatDate(item.scheduledFor)} · ${platforms}</div>
+      </div>
+      <span class="badge badge-${item.status}">${item.status}</span>
+    </div>`;
+  };
+
+  const queueHtml  = queueItems.length   ? `<h3 class="social-section-title">Scheduled</h3>${queueItems.map(i => renderItem(i, false)).join('')}` : '';
+  const recentHtml = recentPosted.length ? `<h3 class="social-section-title" style="margin-top:1.25rem">Recently Posted</h3>${recentPosted.map(i => renderItem(i, true)).join('')}` : '';
+
+  const pubsHtml = pubs.length ? `
+    <h3 class="social-section-title" style="margin-top:1.25rem">Published Posts</h3>
+    ${pubs.map(p => `
+    <div class="pub-row">
+      <div>
+        <div class="pub-title">${p.title}</div>
+        <div class="pub-meta">${p.category} · Published ${formatDate(p.publishedAt)}</div>
+      </div>
+      <button class="btn btn-sm btn-green btn-social-schedule" data-id="${p.id}">📣 Schedule</button>
+    </div>`).join('')}
+  ` : '<p class="muted">No published posts yet. Publish a draft first.</p>';
+
+  el.innerHTML = `${queueHtml}${recentHtml}${pubsHtml}`;
+
+  const pending = socialQueue.filter(i => i.status === 'scheduled').length;
+  document.getElementById('socialCount').textContent = pending;
+
+  document.querySelectorAll('.btn-social-schedule').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const post = allPosts.find(p => p.id === btn.dataset.id);
+      if (post) openSocialModal(post);
+    });
+  });
+}
+
+// ── Social: open compose modal ────────────────────────────────────────────────
+function openSocialModal(post) {
+  currentSocialPost = post;
+  document.getElementById('socialModalTitle').textContent =
+    `Schedule: ${post.title.slice(0, 55)}${post.title.length > 55 ? '…' : ''}`;
+
+  const next = new Date();
+  next.setHours(next.getHours() + 1, 0, 0, 0);
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('scheduledFor').value =
+    `${next.getFullYear()}-${pad(next.getMonth()+1)}-${pad(next.getDate())}T${pad(next.getHours())}:00`;
+
+  document.getElementById('socialPlatforms').innerHTML = `
+    <div class="platform-card" data-platform="x">
+      <div class="platform-header">
+        <label class="platform-toggle"><input type="checkbox" class="plat-enable" checked /> 𝕏 (Twitter / X)</label>
+        <span class="char-counter" id="counter-x">0 / 280</span>
+      </div>
+      <textarea class="field plat-text" id="text-x" placeholder="Draft your X post…" style="min-height:80px"></textarea>
+    </div>
+    <div class="platform-card" data-platform="facebook">
+      <div class="platform-header">
+        <label class="platform-toggle"><input type="checkbox" class="plat-enable" checked /> Facebook</label>
+      </div>
+      <textarea class="field plat-text" id="text-facebook" placeholder="Draft your Facebook post…" style="min-height:110px"></textarea>
+    </div>
+    <div class="platform-card" data-platform="instagram">
+      <div class="platform-header">
+        <label class="platform-toggle"><input type="checkbox" class="plat-enable" /> Instagram</label>
+        <span style="font-size:.75rem;color:var(--muted)">(requires image — optional)</span>
+      </div>
+      <textarea class="field plat-text" id="text-instagram" placeholder="Caption + hashtags…" style="min-height:110px"></textarea>
+    </div>`;
+
+  document.getElementById('text-x').addEventListener('input', function() {
+    const c = document.getElementById('counter-x');
+    c.textContent = `${this.value.length} / 280`;
+    c.style.color  = this.value.length > 260 ? 'var(--red)' : 'var(--muted)';
+  });
+
+  document.getElementById('socialModal').classList.add('open');
+}
+
+// ── Social: draft with Claude ─────────────────────────────────────────────────
+async function draftSocialPosts(post) {
+  const key = getAnthropicKey();
+  if (!key) { alert('Add your Anthropic API key in Settings first.'); return null; }
+
+  const url = `https://108mason.github.io/sacred-roots/posts/${post.slug || slugify(post.title)}.html`;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      system: 'You are a social media manager for a spiritual wellness blog. Draft platform-optimized social posts. Return strict JSON only — no markdown, no preamble: { "x": "...", "facebook": "...", "instagram": "..." }. X: ≤280 chars, punchy opener, 2-3 hashtags, include URL. Facebook: 2-3 short paragraphs, warm/conversational, include URL at end. Instagram: engaging caption 150-300 chars then blank line then 20-25 relevant hashtags, no URL.',
+      messages: [{ role: 'user', content: `Blog post:\nTitle: ${post.title}\nURL: ${url}\nHook: ${post.hook}\nCategory: ${post.category}\nTags: ${(post.tags||[]).join(', ')}` }]
+    })
+  });
+
+  if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  const raw  = data.content[0].text.trim().replace(/^```json\s*/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  return JSON.parse(raw);
+}
+
+// ── Social: save to queue ─────────────────────────────────────────────────────
+async function scheduleSocialPost(postId, platforms, scheduledFor) {
+  const post = allPosts.find(p => p.id === postId);
+  if (!post) throw new Error('Post not found');
+
+  const fileData = await ghGet(BLOG_ENGINE_REPO, SOCIAL_QUEUE_PATH);
+  const queue    = JSON.parse(decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, '')))));
+
+  queue.push({
+    id: crypto.randomUUID(),
+    postId,
+    postTitle: post.title,
+    postSlug:  post.slug || slugify(post.title),
+    postUrl:   `https://108mason.github.io/sacred-roots/posts/${post.slug || slugify(post.title)}.html`,
+    scheduledFor: new Date(scheduledFor).toISOString(),
+    platforms,
+    status: 'scheduled',
+    createdAt: new Date().toISOString()
+  });
+
+  await ghPut(BLOG_ENGINE_REPO, SOCIAL_QUEUE_PATH,
+    JSON.stringify(queue, null, 2), fileData.sha,
+    `chore: schedule social post "${post.title}"`);
+
+  socialQueue = queue;
+  renderSocial();
+}
+
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function toast(msg, isError = false) {
   const t = document.createElement('div');
@@ -577,15 +749,17 @@ function toast(msg, isError = false) {
 // ── Settings modal ────────────────────────────────────────────────────────────
 const modal = document.getElementById('settingsModal');
 document.getElementById('settingsBtn').addEventListener('click', () => {
-  document.getElementById('patInput').value = getToken();
+  document.getElementById('patInput').value          = getToken();
+  document.getElementById('anthropicKeyInput').value = getAnthropicKey();
   modal.classList.add('open');
 });
 document.getElementById('closeSettings').addEventListener('click', () => modal.classList.remove('open'));
 document.getElementById('savePat').addEventListener('click', () => {
   saveToken(document.getElementById('patInput').value.trim());
+  saveAnthropicKey(document.getElementById('anthropicKeyInput').value.trim());
   modal.classList.remove('open');
   document.getElementById('noPat').style.display = 'none';
-  toast('Token saved');
+  toast('Settings saved');
 });
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -595,6 +769,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tabDrafts').style.display    = btn.dataset.tab === 'drafts'    ? 'block' : 'none';
     document.getElementById('tabPublished').style.display = btn.dataset.tab === 'published' ? 'block' : 'none';
+    document.getElementById('tabSocial').style.display    = btn.dataset.tab === 'social'    ? 'block' : 'none';
+    if (btn.dataset.tab === 'social') renderSocial();
   });
 });
 
@@ -620,15 +796,70 @@ document.getElementById('scanBtn').addEventListener('click', async () => {
   }
 });
 
+// ── Social modal bindings ─────────────────────────────────────────────────────
+document.getElementById('closeSocialModal').addEventListener('click', () => {
+  document.getElementById('socialModal').classList.remove('open');
+});
+
+document.getElementById('draftAllBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('draftAllBtn');
+  btn.disabled = true; btn.textContent = '⏳ Drafting…';
+  try {
+    const drafts = await draftSocialPosts(currentSocialPost);
+    if (!drafts) return;
+    if (drafts.x)         { document.getElementById('text-x').value         = drafts.x;         document.getElementById('text-x').dispatchEvent(new Event('input')); }
+    if (drafts.facebook)  document.getElementById('text-facebook').value  = drafts.facebook;
+    if (drafts.instagram) document.getElementById('text-instagram').value = drafts.instagram;
+    toast('✅ Drafts ready — review and schedule');
+  } catch (err) {
+    toast(`❌ ${err.message}`, true);
+  } finally {
+    btn.disabled = false; btn.textContent = '✨ Draft with Claude';
+  }
+});
+
+document.getElementById('confirmSchedule').addEventListener('click', async () => {
+  if (!getToken()) { alert('Set your GitHub token in Settings first.'); return; }
+  const scheduledFor = document.getElementById('scheduledFor').value;
+  if (!scheduledFor) { alert('Pick a schedule date/time.'); return; }
+  if (!currentSocialPost) return;
+
+  const btn = document.getElementById('confirmSchedule');
+  btn.disabled = true; btn.textContent = '⏳ Saving…';
+  try {
+    const platforms = {};
+    document.querySelectorAll('#socialPlatforms .platform-card').forEach(card => {
+      const p = card.dataset.platform;
+      platforms[p] = {
+        enabled: card.querySelector('.plat-enable').checked,
+        text:    card.querySelector('.plat-text').value.trim(),
+        posted:  false, postedAt: null, error: null
+      };
+    });
+    if (!Object.values(platforms).some(v => v.enabled && v.text)) {
+      alert('Enable at least one platform and add text.');
+      btn.disabled = false; btn.textContent = 'Schedule'; return;
+    }
+    await scheduleSocialPost(currentSocialPost.id, platforms, scheduledFor);
+    document.getElementById('socialModal').classList.remove('open');
+    toast('📅 Post scheduled!');
+  } catch (err) {
+    toast(`❌ ${err.message}`, true);
+    btn.disabled = false; btn.textContent = 'Schedule';
+  }
+});
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
   if (!getToken()) document.getElementById('noPat').style.display = 'block';
 
   try {
-    allPosts = await loadPosts();
+    [allPosts, socialQueue] = await Promise.all([loadPosts(), loadSocialQueue()]);
     renderDrafts();
     renderPublished();
     updateStats();
+    document.getElementById('socialCount').textContent =
+      socialQueue.filter(i => i.status === 'scheduled').length;
   } catch (err) {
     document.getElementById('draftsList').innerHTML = `<p class="muted">Could not load posts.json — ${err.message}</p>`;
   }
