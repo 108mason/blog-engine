@@ -158,14 +158,18 @@ function renderPublished() {
   document.getElementById('pubCount').textContent = pubs.length;
   const el = document.getElementById('publishedList');
   el.innerHTML = pubs.length
-    ? pubs.map(p => `
+    ? pubs.map(p => {
+        const slug = p.slug || slugify(p.title);
+        const url  = `https://108mason.github.io/sacred-roots/posts/${slug}.html`;
+        return `
         <div class="pub-row">
           <div>
             <div class="pub-title">${p.title}</div>
             <div class="pub-meta">${p.category} · Published ${formatDate(p.publishedAt)}</div>
           </div>
-          <span class="badge badge-cat">Published</span>
-        </div>`).join('')
+          <a href="${url}" target="_blank" rel="noopener" class="btn btn-sm btn-green">↗ View</a>
+        </div>`;
+      }).join('')
     : '<p class="muted">Nothing published yet.</p>';
 }
 
