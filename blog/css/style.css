@@ -50,6 +50,9 @@ header {
 .btn-green:hover { background: #1f4d39; }
 .btn-danger { background: var(--red-bg); border-color: #fca5a5; color: var(--red); }
 .btn-danger:hover { background: #fca5a5; }
+.btn-humanize { background: #EDE9FE; border-color: #C4B5FD; color: #5B21B6; }
+.btn-humanize:hover { background: #DDD6FE; }
+.btn-humanize:disabled { opacity: .6; cursor: not-allowed; }
 .btn-sm { padding: .3rem .75rem; font-size: .8rem; }
 
 /* Layout */

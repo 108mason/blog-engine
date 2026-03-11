@@ -117,6 +117,9 @@ function draftCard(post) {
           <button class="btn btn-green pub-btn">📤 Publish to Sacred Roots</button>
         </div>
         <div style="margin-top:auto">
+          <button class="btn btn-humanize hum-btn" title="Rewrite with Claude — <60% similarity, humanized voice">✨ Humanize</button>
+        </div>
+        <div style="margin-top:auto">
           <button class="btn btn-danger del-btn">🗑 Delete</button>
         </div>
       </div>
@@ -210,6 +213,43 @@ function bindDraftEvents() {
         toast(`❌ ${err.message}`, true);
         btn.disabled = false;
         btn.textContent = '📤 Publish to Sacred Roots';
+      }
+    });
+  });
+
+  // Humanize
+  document.querySelectorAll('.hum-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!getToken()) { alert('Set your GitHub token in Settings first.'); return; }
+      const card  = btn.closest('.draft-card');
+      const id    = card.dataset.id;
+      const title = card.querySelector('[data-field="title"]').value.trim();
+
+      if (!confirm(`Humanize & rewrite "${title}"?\n\nClaude will rewrite this post with <60% similarity and a fresh human voice.\n\nRefresh the hub in ~3 minutes to see the result.`)) return;
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Queuing…';
+
+      try {
+        const res = await fetch(
+          `${GH_API}/repos/${BLOG_ENGINE_REPO}/actions/workflows/humanize.yml/dispatches`,
+          {
+            method: 'POST',
+            headers: ghHeaders(),
+            body: JSON.stringify({ ref: 'master', inputs: { post_id: id } })
+          }
+        );
+        if (res.status === 204) {
+          btn.textContent = '✅ Queued';
+          toast('✨ Humanize job started — refresh in ~3 minutes');
+        } else {
+          const err = await res.text();
+          throw new Error(`Status ${res.status}: ${err}`);
+        }
+      } catch (err) {
+        toast(`❌ ${err.message}`, true);
+        btn.disabled = false;
+        btn.textContent = '✨ Humanize';
       }
     });
   });

@@ -1,0 +1,65 @@
+name: Humanize Post
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_id:
+        description: 'Post ID to rewrite'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  humanize:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rewrite post with Claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/humanize.js "${{ inputs.post_id }}"
+
+      - name: Commit rewritten post
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add blog/data/posts.json
+          git commit -m "chore: humanize post ${{ inputs.post_id }}" || echo "Nothing to commit"
+          git push || echo "Nothing to push"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload blog/ as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: blog
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
