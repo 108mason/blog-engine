@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content Converter — Sacred Roots Hub</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .converter-wrap { max-width: 680px; margin: 2rem auto; padding: 0 1.5rem; }
+    .converter-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--shadow); }
+    .converter-desc { color: var(--muted); font-size: .9rem; margin-bottom: 1.25rem; line-height: 1.6; }
+    .input-row { display: flex; gap: .75rem; }
+    .input-row .field { flex: 1; }
+    .status-box { margin-top: 1rem; padding: .75rem 1rem; border-radius: var(--radius); font-size: .88rem; font-weight: 600; display: none; }
+    .status-box.ok  { background: #D1FAE5; color: #065F46; }
+    .status-box.err { background: var(--red-bg); color: var(--red); }
+    .status-box.info { background: #EFF6FF; color: #1D4ED8; }
+    .back-link { font-size: .85rem; color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; gap: .35rem; margin-bottom: 1.5rem; }
+    .back-link:hover { color: var(--green); }
+    .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+    .tool-card { background: #fff; border: 2px solid var(--border); border-radius: var(--radius); padding: 1.25rem; cursor: pointer; transition: .15s; text-align: center; }
+    .tool-card:hover { border-color: var(--green); background: var(--cream); }
+    .tool-card.active { border-color: var(--green); background: var(--cream); }
+    .tool-icon { font-size: 2rem; margin-bottom: .5rem; }
+    .tool-name { font-weight: 700; font-size: .95rem; color: var(--text); }
+    .tool-sub  { font-size: .78rem; color: var(--muted); margin-top: .2rem; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .tip { font-size: .78rem; color: var(--muted); margin-top: .4rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">🌿 Sacred Roots Content Hub</div>
+    <a href="converter.html" class="btn btn-sm" style="margin-left:.75rem">🔄 Converter</a>
+    <div class="header-actions">
+      <button class="btn btn-sm" id="settingsBtn">⚙ Settings</button>
+    </div>
+  </div>
+</header>
+
+<!-- Settings Modal (PAT only) -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h3>Settings</h3>
+    <label>GitHub Personal Access Token
+      <small>Needs <code>repo</code> scope</small>
+      <input type="password" id="patInput" placeholder="github_pat_..." />
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="savePat">Save</button>
+      <button class="btn" id="closeSettings">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="converter-wrap">
+  <a href="index.html" class="back-link">← Back to Hub</a>
+  <h2 style="margin-bottom:.5rem;font-size:1.3rem">🔄 Content Converter</h2>
+  <p style="color:var(--muted);font-size:.9rem;margin-bottom:1.5rem">Convert any content into a Sacred Roots blog draft. Pick a source type below.</p>
+
+  <!-- Tool selector -->
+  <div class="tool-grid">
+    <div class="tool-card active" data-tool="youtube">
+      <div class="tool-icon">▶️</div>
+      <div class="tool-name">YouTube Video</div>
+      <div class="tool-sub">Video transcript → article</div>
+    </div>
+    <div class="tool-card" data-tool="twitter">
+      <div class="tool-icon">𝕏</div>
+      <div class="tool-name">X Thread</div>
+      <div class="tool-sub">Tweet thread → article</div>
+    </div>
+    <div class="tool-card" data-tool="podcast">
+      <div class="tool-icon">🎙️</div>
+      <div class="tool-name">Podcast / RSS</div>
+      <div class="tool-sub">Episode or feed → article</div>
+    </div>
+    <div class="tool-card" data-tool="url">
+      <div class="tool-icon">🌐</div>
+      <div class="tool-name">Web Page</div>
+      <div class="tool-sub">Any article URL → draft</div>
+    </div>
+  </div>
+
+  <!-- Panels -->
+  <div class="converter-card">
+
+    <div class="panel active" id="panel-youtube">
+      <h3 style="margin-bottom:.5rem">YouTube Video → Article</h3>
+      <p class="converter-desc">Paste a YouTube video URL. We'll extract the transcript and generate a full blog post draft in your brand voice. Works best with videos that have auto-generated or manual captions.</p>
+      <label class="field-label">YouTube URL</label>
+      <div class="input-row">
+        <input class="field" id="url-youtube" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+        <button class="btn btn-primary" data-type="youtube">Convert</button>
+      </div>
+      <p class="tip">Accepts youtube.com/watch?v=... and youtu.be/... links</p>
+      <div class="status-box" id="status-youtube"></div>
+    </div>
+
+    <div class="panel" id="panel-twitter">
+      <h3 style="margin-bottom:.5rem">X Thread → Article</h3>
+      <p class="converter-desc">Paste the URL of the first tweet in a thread. We'll fetch the full thread using the Twitter API and turn it into a blog post. Requires <code>TWITTER_BEARER_TOKEN</code> in GitHub Secrets.</p>
+      <label class="field-label">Tweet / Thread URL</label>
+      <div class="input-row">
+        <input class="field" id="url-twitter" type="url" placeholder="https://x.com/username/status/..." />
+        <button class="btn btn-primary" data-type="twitter">Convert</button>
+      </div>
+      <p class="tip">Paste the URL of the opening tweet in the thread</p>
+      <div class="status-box" id="status-twitter"></div>
+    </div>
+
+    <div class="panel" id="panel-podcast">
+      <h3 style="margin-bottom:.5rem">Podcast / RSS → Article</h3>
+      <p class="converter-desc">Paste a podcast RSS feed URL or episode page URL. We'll pull the latest episode's show notes and convert them into a blog post draft.</p>
+      <label class="field-label">Podcast RSS or Episode URL</label>
+      <div class="input-row">
+        <input class="field" id="url-podcast" type="url" placeholder="https://feeds.simplecast.com/... or episode page URL" />
+        <button class="btn btn-primary" data-type="podcast">Convert</button>
+      </div>
+      <p class="tip">RSS feed URLs work best — most podcast hosts provide one</p>
+      <div class="status-box" id="status-podcast"></div>
+    </div>
+
+    <div class="panel" id="panel-url">
+      <h3 style="margin-bottom:.5rem">Web Page → Article</h3>
+      <p class="converter-desc">Paste any web article URL. We'll fetch the page, extract the main content, and rewrite it in Sacred Roots' spiritual wellness voice as a new draft.</p>
+      <label class="field-label">Article URL</label>
+      <div class="input-row">
+        <input class="field" id="url-url" type="url" placeholder="https://example.com/any-article" />
+        <button class="btn btn-primary" data-type="url">Convert</button>
+      </div>
+      <p class="tip">Works with most news sites, blogs, and wellness publications</p>
+      <div class="status-box" id="status-url"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const GH_API          = 'https://api.github.com';
+const BLOG_ENGINE_REPO = '108mason/blog-engine';
+const getToken = () => localStorage.getItem('gh_pat') || '';
+const saveToken = t => localStorage.setItem('gh_pat', t);
+
+// Settings modal
+const modal = document.getElementById('settingsModal');
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('patInput').value = getToken();
+  modal.classList.add('open');
+});
+document.getElementById('closeSettings').addEventListener('click', () => modal.classList.remove('open'));
+document.getElementById('savePat').addEventListener('click', () => {
+  saveToken(document.getElementById('patInput').value.trim());
+  modal.classList.remove('open');
+});
+
+// Tool tabs
+document.querySelectorAll('.tool-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    card.classList.add('active');
+    document.getElementById(`panel-${card.dataset.tool}`).classList.add('active');
+  });
+});
+
+// Convert buttons
+document.querySelectorAll('[data-type]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const type   = btn.dataset.type;
+    const input  = document.getElementById(`url-${type}`);
+    const status = document.getElementById(`status-${type}`);
+    const url    = input.value.trim();
+
+    if (!url) { showStatus(status, 'Please enter a URL.', 'err'); return; }
+    if (!getToken()) { showStatus(status, 'Set your GitHub token in Settings first.', 'err'); return; }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Queuing…';
+    showStatus(status, '⏳ Sending to GitHub Actions…', 'info');
+
+    try {
+      const res = await fetch(
+        `${GH_API}/repos/${BLOG_ENGINE_REPO}/actions/workflows/convert.yml/dispatches`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+            Accept: 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ ref: 'master', inputs: { type, source_url: url } })
+        }
+      );
+
+      if (res.status === 204) {
+        showStatus(status, '✅ Job queued! A new draft will appear in the Hub in ~3 minutes. Refresh the hub page when ready.', 'ok');
+        input.value = '';
+      } else {
+        const err = await res.text();
+        throw new Error(`GitHub API ${res.status}: ${err}`);
+      }
+    } catch (err) {
+      showStatus(status, `❌ ${err.message}`, 'err');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Convert';
+    }
+  });
+});
+
+function showStatus(el, msg, type) {
+  el.textContent = msg;
+  el.className = `status-box ${type}`;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>

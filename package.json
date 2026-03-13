@@ -9,10 +9,12 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "latest",
+    "cheerio": "^1.0.0",
     "dotenv": "latest",
     "node-cron": "latest",
     "rss-parser": "latest",
     "twitter-api-v2": "^1.17.0",
-    "uuid": "latest"
+    "uuid": "latest",
+    "youtube-transcript": "^1.2.1"
   }
 }
