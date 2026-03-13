@@ -30,18 +30,28 @@ header {
   box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
 .header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.logo { font-size: 1.1rem; font-weight: 700; color: #fff; text-decoration: none; }
-.logo:hover { opacity: .85; }
+
+/* Logo — stronger selector to beat global a {} */
+a.logo, a.logo:visited, a.logo:hover, a.logo:active {
+  font-size: 1.1rem; font-weight: 700; color: #fff;
+  text-decoration: none; opacity: 1;
+}
+a.logo:hover { opacity: .85; }
+
 .header-nav { display: flex; align-items: center; gap: .5rem; margin-left: 1.25rem; }
-.btn-nav {
+
+/* Nav button — ghost style for dark header */
+a.btn-nav, a.btn-nav:visited, a.btn-nav:active {
   display: inline-flex; align-items: center; gap: .35rem;
   padding: .35rem .9rem; border-radius: var(--radius);
   border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.1);
-  font-size: .85rem; font-weight: 600; color: #fff; cursor: pointer;
-  text-decoration: none; transition: .15s; font-family: 'Inter', sans-serif;
+  font-size: .85rem; font-weight: 600; color: #fff !important;
+  text-decoration: none !important; cursor: pointer;
+  transition: background .15s, border-color .15s; font-family: 'Inter', sans-serif;
 }
-.btn-nav:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.6); color: #fff; }
-.btn-nav.active { background: rgba(255,255,255,.25); border-color: rgba(255,255,255,.7); }
+a.btn-nav:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.6); }
+a.btn-nav.active { background: rgba(255,255,255,.28); border-color: rgba(255,255,255,.75); }
+
 .header-actions { display: flex; align-items: center; gap: .75rem; }
 #statsBar { font-size: .82rem; opacity: .8; color: #fff; }
 
@@ -207,3 +217,68 @@ select.field { cursor: pointer; }
   border-radius: var(--radius); margin-top: .5rem;
   white-space: pre-wrap;
 }
+
+/* ── Dim mode (Twitter-style) ──────────────────────────────────────────────── */
+html.dim body { background: #15202B; color: #F7F9F9; }
+html.dim code { background: #253341; color: #C4B5FD; }
+html.dim small { color: #8B98A5; }
+
+/* Cards & surfaces */
+html.dim .draft-card,
+html.dim .pub-row,
+html.dim .social-queue-item,
+html.dim .modal,
+html.dim .platform-card { background: #1E2732; border-color: #38444D; box-shadow: none; }
+html.dim .draft-header:hover { background: #253341; }
+html.dim .hook-box { background: #253341; color: #8B98A5; }
+html.dim .body-preview { background: #253341; }
+
+/* Inputs */
+html.dim .field { background: #253341; border-color: #38444D; color: #F7F9F9; }
+html.dim .field:focus { outline-color: var(--sage); border-color: var(--sage); }
+html.dim .modal input { background: #253341; border-color: #38444D; color: #F7F9F9; }
+
+/* Tabs */
+html.dim .tabs { border-bottom-color: #38444D; }
+html.dim .tab-btn { color: #8B98A5; }
+html.dim .tab-btn.active { color: var(--sage); border-bottom-color: var(--sage); }
+html.dim .draft-expand { border-top-color: #38444D; }
+html.dim .publish-row { border-top-color: #38444D; }
+
+/* Labels */
+html.dim .field-label, html.dim .publish-row label { color: var(--sage); }
+html.dim .draft-title, html.dim .pub-title { color: #F7F9F9; }
+html.dim .source-link, html.dim .pub-meta, html.dim .muted { color: #8B98A5; }
+
+/* Buttons */
+html.dim .btn { background: #253341; border-color: #38444D; color: #F7F9F9; }
+html.dim .btn:hover { background: #2F3B47; }
+html.dim .btn-primary { background: var(--gold); border-color: var(--gold); color: #fff; }
+html.dim .btn-primary:hover { background: #b8962e; }
+html.dim .btn-green { background: var(--green); border-color: var(--green); color: #fff; }
+html.dim .btn-green:hover { background: #1f4d39; }
+html.dim .btn-humanize { background: #2D2040; border-color: #5B21B6; color: #C4B5FD; }
+html.dim .btn-humanize:hover { background: #3D2B5A; }
+html.dim .btn-danger { background: #3B1515; border-color: #7F1D1D; color: #FCA5A5; }
+html.dim .btn-danger:hover { background: #4D1A1A; }
+
+/* Notices & badges */
+html.dim .notice-warn { background: #2D1F05; border-bottom-color: #7A5C14; color: #FDE68A; }
+html.dim .badge-scheduled { background: #2D1F05; color: #FDE68A; }
+html.dim .badge-posted { background: #0D2B1F; color: #86EFAC; }
+html.dim .badge-cat { background: #0D2B1F; color: #86EFAC; }
+html.dim .badge-score { background: #1A3B2F; color: var(--sage); }
+
+/* Modal overlay */
+html.dim .modal-overlay { background: rgba(0,0,0,.7); }
+
+/* Converter page */
+html.dim .tool-card { background: #1E2732; border-color: #38444D; }
+html.dim .tool-card:hover, html.dim .tool-card.active { background: #253341; border-color: var(--sage); }
+html.dim .tool-name { color: #F7F9F9; }
+html.dim .tool-sub { color: #8B98A5; }
+html.dim .converter-card { background: #1E2732; border-color: #38444D; }
+html.dim .converter-desc, html.dim .tip { color: #8B98A5; }
+html.dim .status-box.ok   { background: #0D2B1F; color: #86EFAC; }
+html.dim .status-box.err  { background: #2B0D0D; color: #FCA5A5; }
+html.dim .status-box.info { background: #0D1B2B; color: #93C5FD; }

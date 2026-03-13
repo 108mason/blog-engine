@@ -849,6 +849,20 @@ document.getElementById('confirmSchedule').addEventListener('click', async () =>
   }
 });
 
+// ── Dim mode ──────────────────────────────────────────────────────────────────
+function applyDim() {
+  const on = localStorage.getItem('dim') === 'true';
+  document.documentElement.classList.toggle('dim', on);
+  const btn = document.getElementById('dimToggle');
+  if (btn) btn.textContent = on ? '☀️' : '🌙';
+}
+applyDim();
+document.getElementById('dimToggle').addEventListener('click', () => {
+  const next = !document.documentElement.classList.contains('dim');
+  localStorage.setItem('dim', String(next));
+  applyDim();
+});
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
   if (!getToken()) document.getElementById('noPat').style.display = 'block';

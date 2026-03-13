@@ -38,6 +38,7 @@
       <a href="converter.html" class="btn-nav active">🔄 Converter</a>
     </nav>
     <div class="header-actions">
+      <button class="btn btn-sm" id="dimToggle" title="Toggle dim mode">🌙</button>
       <button class="btn btn-sm" id="settingsBtn">⚙ Settings</button>
     </div>
   </div>
@@ -146,6 +147,20 @@ const GH_API          = 'https://api.github.com';
 const BLOG_ENGINE_REPO = '108mason/blog-engine';
 const getToken = () => localStorage.getItem('gh_pat') || '';
 const saveToken = t => localStorage.setItem('gh_pat', t);
+
+// Dim mode
+function applyDim() {
+  const on = localStorage.getItem('dim') === 'true';
+  document.documentElement.classList.toggle('dim', on);
+  const btn = document.getElementById('dimToggle');
+  if (btn) btn.textContent = on ? '☀️' : '🌙';
+}
+applyDim();
+document.getElementById('dimToggle').addEventListener('click', () => {
+  const next = !document.documentElement.classList.contains('dim');
+  localStorage.setItem('dim', String(next));
+  applyDim();
+});
 
 // Settings modal
 const modal = document.getElementById('settingsModal');
