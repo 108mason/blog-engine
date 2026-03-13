@@ -30,7 +30,18 @@ header {
   box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
 .header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.logo { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.logo { font-size: 1.1rem; font-weight: 700; color: #fff; text-decoration: none; }
+.logo:hover { opacity: .85; }
+.header-nav { display: flex; align-items: center; gap: .5rem; margin-left: 1.25rem; }
+.btn-nav {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .35rem .9rem; border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.1);
+  font-size: .85rem; font-weight: 600; color: #fff; cursor: pointer;
+  text-decoration: none; transition: .15s; font-family: 'Inter', sans-serif;
+}
+.btn-nav:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.6); color: #fff; }
+.btn-nav.active { background: rgba(255,255,255,.25); border-color: rgba(255,255,255,.7); }
 .header-actions { display: flex; align-items: center; gap: .75rem; }
 #statsBar { font-size: .82rem; opacity: .8; color: #fff; }
 
